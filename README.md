@@ -21,7 +21,7 @@ Implementar un entorno funcional que permita demostrar:
 
 ---
 
-## 🧩 **Componentes Principales**
+## **Componentes Principales**
 
 | Componente | Propósito |
 |-------------|-----------|
@@ -34,7 +34,8 @@ Implementar un entorno funcional que permita demostrar:
 
 ---
 ```bash
-## 🧱 **Estructura del Repositorio**
+
+## **Estructura del Repositorio**
 
 rocamotors-iac/
 ├── modules/
@@ -55,7 +56,7 @@ rocamotors-iac/
 └── workflows/
 ├── terraform.yml # CI/CD principal (plan & apply)
 └── terraform-destroy.yml # Pipeline de destrucción controlada
-
+```
 ---
 
 ## ⚙️ **Backend remoto (S3)**
@@ -73,6 +74,7 @@ terraform {
 Esto permite que el pipeline de apply y destroy acceda al mismo estado sin intervención manual
 
 ---
+## **Objetivo de la Demostración**
 
 ## **CI/CD – GitHub Actions** 
 
@@ -91,7 +93,8 @@ AWS_SECRET_ACCESS_KEY
 AWS_SESSION_TOKEN
 
 Para la destrucción controlada se dispone de terraform-destroy.yml, ejecutable manualmente desde la interfaz de GitHub Actions.
-
+```
+---
 🧠 Limitaciones y Alcance
 
 Se ejecuta dentro de las cuotas del laboratorio AWS Educate / Academy, con restricciones de recursos.
