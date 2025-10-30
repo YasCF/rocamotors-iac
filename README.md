@@ -57,9 +57,7 @@ rocamotors-iac/
 ├── terraform.yml # CI/CD principal (plan & apply)
 └── terraform-destroy.yml # Pipeline de destrucción controlada
 ```
----
-
-## ⚙️ **Backend remoto (S3)**
+## **Backend remoto (S3)**
 
 El estado se almacena en un bucket S3 para mantener consistencia entre los workflows:
 
@@ -71,33 +69,36 @@ terraform {
     region = "us-east-1"
   }
 }
-Esto permite que el pipeline de apply y destroy acceda al mismo estado sin intervención manual
-
----
-## **Objetivo de la Demostración**
-
-## **CI/CD – GitHub Actions** 
-
-El pipeline terraform.yml realiza:
-
-terraform fmt → verificación de formato
-terraform init → inicialización del backend
-terraform validate → validación sintáctica
-terraform plan → vista previa de cambios
-terraform apply → ejecución automática en rama main
-
-Los secretos de AWS se administran mediante GitHub Secrets:
-
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
-AWS_SESSION_TOKEN
-
-Para la destrucción controlada se dispone de terraform-destroy.yml, ejecutable manualmente desde la interfaz de GitHub Actions.
+Esto permite que el pipeline de apply y destroy acceda al mismo estado sin intervención manual.
 ```
----
-🧠 Limitaciones y Alcance
+## **CI/CD – GitHub Actions**
 
-Se ejecuta dentro de las cuotas del laboratorio AWS Educate / Academy, con restricciones de recursos.
-Se prioriza la demostración funcional de IaC por sobre la escala productiva.
-El despliegue no incluye servicios avanzados de seguridad (WAF Advanced, CloudFront, KMS dedicado), pero mantiene cifrado básico y políticas IAM.
-El modelo es referencial y validado conceptualmente según el informe “Implementación de Infraestructura Resiliente AWS para RoCa Motors”.
+El pipeline `terraform.yml` realiza los siguientes pasos:
+
+1. **`terraform fmt`** → verificación de formato  
+2. **`terraform init`** → inicialización del backend  
+3. **`terraform validate`** → validación sintáctica  
+4. **`terraform plan`** → vista previa de cambios  
+5. **`terraform apply`** → ejecución automática en la rama `main`
+
+Los secretos de AWS se administran mediante **GitHub Secrets**:
+
+- **`AWS_ACCESS_KEY_ID`**  
+- **`AWS_SECRET_ACCESS_KEY`**  
+- **`AWS_SESSION_TOKEN`**
+
+Para la destrucción controlada se dispone del pipeline  
+**`terraform-destroy.yml`**, ejecutable manualmente desde la interfaz de **GitHub Actions**.
+
+---
+
+## **Limitaciones y Alcance**
+
+- Se ejecuta dentro de las cuotas del laboratorio **AWS Educate / Academy**, con restricciones de recursos.  
+- Se prioriza la **demostración funcional de IaC** por sobre la escala productiva.  
+- El despliegue no incluye servicios avanzados de seguridad *(WAF Advanced, CloudFront, KMS dedicado)*, pero mantiene cifrado básico y políticas **IAM**.  
+- El modelo es **referencial y validado conceptualmente** según el informe  
+  *“Implementación de Infraestructura Resiliente AWS para RoCa Motors”*.
+
+---
+
