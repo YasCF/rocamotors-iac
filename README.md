@@ -1,4 +1,4 @@
-# 🚗 RoCa Motors – Demostración de Infraestructura como Código (IaC)
+# RoCa Motors – Demostración de Infraestructura como Código (IaC)
 
 Este repositorio contiene la **implementación demostrativa** de la infraestructura cloud para **RoCa Motors**, desarrollada como parte del **Portafolio de Título (PTY4684)** de la carrera *Ingeniería en Infraestructura y Plataformas Tecnológicas – Duoc UC*.
 
@@ -9,7 +9,7 @@ El despliegue se ejecuta en el **laboratorio educativo de AWS**, con el objetivo
 
 ---
 
-## 🎯 **Objetivo de la Demostración**
+## **Objetivo de la Demostración**
 
 Implementar un entorno funcional que permita demostrar:
 
@@ -33,7 +33,7 @@ Implementar un entorno funcional que permita demostrar:
 | **SNS + CloudWatch** | Monitoreo y notificaciones básicas. |
 
 ---
-
+```bash
 ## 🧱 **Estructura del Repositorio**
 
 rocamotors-iac/
@@ -56,7 +56,6 @@ rocamotors-iac/
 ├── terraform.yml # CI/CD principal (plan & apply)
 └── terraform-destroy.yml # Pipeline de destrucción controlada
 
-
 ---
 
 ## ⚙️ **Backend remoto (S3)**
@@ -71,28 +70,24 @@ terraform {
     region = "us-east-1"
   }
 }
-Esto permite que el pipeline de apply y destroy acceda al mismo estado sin intervención manual.
+Esto permite que el pipeline de apply y destroy acceda al mismo estado sin intervención manual
 
-🔄 CI/CD – GitHub Actions
+---
+
+## **CI/CD – GitHub Actions** 
 
 El pipeline terraform.yml realiza:
 
 terraform fmt → verificación de formato
-
 terraform init → inicialización del backend
-
 terraform validate → validación sintáctica
-
 terraform plan → vista previa de cambios
-
 terraform apply → ejecución automática en rama main
 
 Los secretos de AWS se administran mediante GitHub Secrets:
 
 AWS_ACCESS_KEY_ID
-
 AWS_SECRET_ACCESS_KEY
-
 AWS_SESSION_TOKEN
 
 Para la destrucción controlada se dispone de terraform-destroy.yml, ejecutable manualmente desde la interfaz de GitHub Actions.
@@ -100,9 +95,6 @@ Para la destrucción controlada se dispone de terraform-destroy.yml, ejecutable 
 🧠 Limitaciones y Alcance
 
 Se ejecuta dentro de las cuotas del laboratorio AWS Educate / Academy, con restricciones de recursos.
-
 Se prioriza la demostración funcional de IaC por sobre la escala productiva.
-
 El despliegue no incluye servicios avanzados de seguridad (WAF Advanced, CloudFront, KMS dedicado), pero mantiene cifrado básico y políticas IAM.
-
 El modelo es referencial y validado conceptualmente según el informe “Implementación de Infraestructura Resiliente AWS para RoCa Motors”.
