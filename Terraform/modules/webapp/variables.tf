@@ -1,0 +1,1 @@
+# Por ahora vacío, pero puedes definir variables si necesitas luego
