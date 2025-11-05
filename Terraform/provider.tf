@@ -17,13 +17,6 @@ terraform {
     encrypt        = true
     dynamodb_table = "tf-locks"
   }
-  backend "s3" {
-    bucket         = "roca-bucket-aws"
-    key            = "terraform/rocamotors-iac.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "tf-locks"
-  }
 }
 
 provider "aws" {
