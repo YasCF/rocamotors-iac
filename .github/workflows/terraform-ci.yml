@@ -2,10 +2,17 @@ name: Terraform CI/CD - RoCa Motors
 
 on:
   workflow_dispatch:
-
-permissions:
-  contents: read
-  id-token: write
+    inputs:
+      action:
+        description: "Selecciona la acción de Terraform a ejecutar"
+        required: true
+        type: choice
+        options:
+          - init
+          - plan
+          - apply
+          - all
+          - destroy
 
 jobs:
   terraform:
@@ -26,33 +33,34 @@ jobs:
         with:
           terraform_version: 1.9.5
 
+      # === INIT ===
       - name: Terraform Init
-        run: terraform init
+        if: ${{ github.event.inputs.action == 'init' || github.event.inputs.action == 'all' }}
+        run: terraform init -input=false
+        working-directory: ./Terraform
 
-      - name: Terraform Format
-        run: terraform fmt -check
-
-      - name: Terraform Validate
-        run: terraform validate
-
+      # === PLAN ===
       - name: Terraform Plan
+        if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
         run: terraform plan -out=tfplan.out
+        working-directory: ./Terraform
 
+      # === APPLY ===
+      - name: Terraform Apply
+        if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'all' }}
+        run: terraform apply -auto-approve tfplan.out
+        working-directory: ./Terraform
+
+      # === DESTROY ===
+      - name: Terraform Destroy
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
+        working-directory: ./Terraform
+
+      # === ARTIFACT (opcional, guarda el plan si existe) ===
       - name: Upload Terraform Plan
+        if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
-          path: tfplan.out
-
-      # (Opcional) Guardar logs de ejecución para análisis
-      - name: Save logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-logs
-          path: .terraform/
-
-      # (Opcional) Terraform Apply - Controlado
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve
+          path: ./Terraform/tfplan.out
