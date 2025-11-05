@@ -4,24 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "Choose the Terraform action to perform"
+        description: "Selecciona la acción de Terraform a ejecutar"
         required: true
         type: choice
         options:
           - init
           - plan
           - apply
-          - all   # Ejecuta init, plan y apply
+          - all
           - destroy
-          - unlock
-      lock_id:
-        description: "Lock ID para force-unlock (solo si action = unlock)"
-        required: false
-        type: string
-
-concurrency:
-  group: terraform-rocamotors-iac
-  cancel-in-progress: true
 
 jobs:
   init:
@@ -44,143 +35,34 @@ jobs:
         with:
           terraform_version: 1.5.0
 
+      # === INIT ===
       - name: Terraform Init
+        if: ${{ github.event.inputs.action == 'init' || github.event.inputs.action == 'all' }}
+        run: terraform init -input=false
         working-directory: ./Terraform
-        run: |
-          terraform init \
-            -backend-config="bucket=roca-bucket-aws" \
-            -backend-config="key=terraform/rocamotors-iac.tfstate" \
-            -backend-config="region=us-east-1" \
-            -backend-config="dynamodb_table=tf-locks" \
-            -reconfigure
 
-  plan:
-    if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
-    needs: init
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Setup AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
-
+      # === PLAN ===
       - name: Terraform Plan
+        if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
+        run: terraform plan -out=tfplan.out
         working-directory: ./Terraform
-        run: |
-          terraform init \
-            -backend-config="bucket=roca-bucket-aws" \
-            -backend-config="key=terraform/rocamotors-iac.tfstate" \
-            -backend-config="region=us-east-1" \
-            -backend-config="dynamodb_table=tf-locks" \
-            -reconfigure
-          terraform plan -lock-timeout=5m -out=tfplan
 
-  apply:
-    if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'all' }}
-    needs: plan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Setup AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
-
+      # === APPLY ===
       - name: Terraform Apply
+        if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'all' }}
+        run: terraform apply -auto-approve tfplan.out
         working-directory: ./Terraform
-        run: |
-          terraform init \
-            -backend-config="bucket=roca-bucket-aws" \
-            -backend-config="key=terraform/rocamotors-iac.tfstate" \
-            -backend-config="region=us-east-1" \
-            -backend-config="dynamodb_table=tf-locks" \
-            -reconfigure
-          terraform plan -lock-timeout=5m -out=tfplan
-          terraform apply -auto-approve tfplan
 
-  destroy:
-    if: ${{ github.event.inputs.action == 'destroy' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Setup AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
-
+      # === DESTROY ===
       - name: Terraform Destroy
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
         working-directory: ./Terraform
-        run: |
-          terraform init \
-            -backend-config="bucket=roca-bucket-aws" \
-            -backend-config="key=terraform/rocamotors-iac.tfstate" \
-            -backend-config="region=us-east-1" \
-            -backend-config="dynamodb_table=tf-locks" \
-            -reconfigure
-          terraform destroy -lock-timeout=5m -auto-approve
 
-  unlock:
-    if: ${{ github.event.inputs.action == 'unlock' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Setup AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      # === ARTIFACT (opcional, guarda el plan si existe) ===
+      - name: Upload Terraform Plan
+        if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
+        uses: actions/upload-artifact@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
-
-      - name: Terraform Force Unlock
-        working-directory: ./Terraform
-        run: |
-          terraform init \
-            -backend-config="bucket=roca-bucket-aws" \
-            -backend-config="key=terraform/rocamotors-iac.tfstate" \
-            -backend-config="region=us-east-1" \
-            -backend-config="dynamodb_table=tf-locks" \
-            -reconfigure
-          if [ -z "${{ github.event.inputs.lock_id }}" ]; then
-            echo "ERROR: lock_id input is required when action = unlock" >&2
-            exit 1
-          fi
-          terraform force-unlock -force "${{ github.event.inputs.lock_id }}"
+          name: terraform-plan
+          path: ./Terraform/tfplan.out
