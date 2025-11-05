@@ -1,4 +1,4 @@
-name: Terraform CI/CD
+name: Terraform CI/CD - RoCa Motors
 
 on:
   workflow_dispatch:
@@ -14,55 +14,108 @@ on:
           - all
           - destroy
 
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.9.5
+  TF_DIR: ./Terraform
+
 jobs:
   init:
     if: ${{ github.event.inputs.action == 'init' || github.event.inputs.action == 'all' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0
+          terraform_version: ${{ env.TF_VERSION }}
 
-      # === INIT ===
       - name: Terraform Init
-        if: ${{ github.event.inputs.action == 'init' || github.event.inputs.action == 'all' }}
-        run: terraform init -input=false
-        working-directory: ./Terraform
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -reconfigure
 
-      # === PLAN ===
-      - name: Terraform Plan
-        if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
-        run: terraform plan -out=tfplan.out
-        working-directory: ./Terraform
+  plan:
+    if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
+    needs: init
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # === APPLY ===
-      - name: Terraform Apply
-        if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'all' }}
-        run: terraform apply -auto-approve tfplan.out
-        working-directory: ./Terraform
-
-      # === DESTROY ===
-      - name: Terraform Destroy
-        if: ${{ github.event.inputs.action == 'destroy' }}
-        run: terraform destroy -auto-approve
-        working-directory: ./Terraform
-
-      # === ARTIFACT (opcional, guarda el plan si existe) ===
-      - name: Upload Terraform Plan
-        if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'all' }}
-        uses: actions/upload-artifact@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          name: terraform-plan
-          path: ./Terraform/tfplan.out
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform init -reconfigure
+          terraform plan -out=tfplan.out
+
+  apply:
+    if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'all' }}
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform init -reconfigure
+          terraform apply -auto-approve tfplan.out
+
+  destroy:
+    if: ${{ github.event.inputs.action == 'destroy' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Destroy
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform init -reconfigure
+          terraform destroy -auto-approve
