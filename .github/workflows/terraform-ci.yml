@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${ secrets.AWS_ACCESS_KEY_ID }
+      AWS_SECRET_ACCESS_KEY: ${ secrets.AWS_SECRET_ACCESS_KEY }
+      AWS_SESSION_TOKEN: ${ secrets.AWS_SESSION_TOKEN }
       AWS_REGION: us-east-1
       TF_IN_AUTOMATION: "true"
       TF_INPUT: "0"
@@ -51,7 +51,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: Terraform
-        run: terraform init -backend-config="bucket=${{ env.S3_BUCKET }}" -backend-config="key=${{ env.TFSTATE_KEY }}" -backend-config="region=${{ env.AWS_REGION }}" -backend-config="dynamodb_table=${{ env.DDB_TABLE }}"
+        run: terraform init -backend-config="bucket=${ env.S3_BUCKET }" -backend-config="key=${ env.TFSTATE_KEY }" -backend-config="region=${ env.AWS_REGION }" -backend-config="dynamodb_table=${ env.DDB_TABLE }"
 
       - name: Terraform Format
         working-directory: Terraform
