@@ -15,7 +15,6 @@ on:
           - destroy
 
 env:
-  AWS_REGION: us-east-1
   TF_VERSION: 1.9.5
   TF_DIR: ./Terraform
 
@@ -24,17 +23,18 @@ jobs:
     if: ${{ github.event.inputs.action == 'init' || github.event.inputs.action == 'all' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
 
-      - name: Setup Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
@@ -48,17 +48,18 @@ jobs:
     needs: init
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
 
-      - name: Setup Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
@@ -69,22 +70,29 @@ jobs:
           terraform init -reconfigure
           terraform plan -out=tfplan.out
 
+      - name: Guardar plan como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: ${{ env.TF_DIR }}/tfplan.out
+
   apply:
     if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'all' }}
     needs: plan
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
 
-      - name: Setup Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
@@ -93,23 +101,24 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: |
           terraform init -reconfigure
-          terraform apply -auto-approve tfplan.out
+          terraform apply -auto-approve
 
   destroy:
     if: ${{ github.event.inputs.action == 'destroy' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
 
-      - name: Setup Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
