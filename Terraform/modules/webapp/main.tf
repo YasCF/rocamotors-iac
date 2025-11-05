@@ -25,7 +25,7 @@ resource "kubernetes_deployment" "roca_web" {
       spec {
         container {
           name  = "roca-web"
-          image = "yasnacf/rocamotors:v2" # cambia luego por tu imagen personalizada
+          image = "yasnacf/rocamotors:v4" # cambia luego por tu imagen personalizada
           port {
             container_port = 80
           }
