@@ -8,7 +8,7 @@ resource "aws_eks_cluster" "this" {
     subnet_ids = var.subnet_ids
   }
 
-  version = "1.29"
+  version = "1.30"
 
   tags = {
     Name    = var.cluster_name
@@ -24,8 +24,8 @@ resource "aws_eks_node_group" "nodes" {
   subnet_ids      = var.subnet_ids
   instance_types  = ["t3.micro"]
   scaling_config {
-    desired_size = 2
-    max_size     = 2
+    desired_size = 1
+    max_size     = 1
     min_size     = 1
   }
 
