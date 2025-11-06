@@ -23,12 +23,19 @@ provider "aws" {
   region = "us-east-1"
 }
 
+resource "time_sleep" "wait_for_cluster" {
+  depends_on = [module.eks]
+  create_duration = "60s"
+}
+
 data "aws_eks_cluster" "cluster" {
-  name = module.eks.cluster_name
+  name       = module.eks.cluster_name
+  depends_on = [time_sleep.wait_for_cluster]
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = module.eks.cluster_name
+  name       = module.eks.cluster_name
+  depends_on = [time_sleep.wait_for_cluster]
 }
 
 provider "kubernetes" {
