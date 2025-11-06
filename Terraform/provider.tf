@@ -24,7 +24,6 @@ provider "aws" {
 }
 
 provider "kubernetes" {
-  host                   = try(data.aws_eks_cluster.cluster.endpoint, "")
-  cluster_ca_certificate = try(base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data), "")
-  token                  = try(data.aws_eks_cluster_auth.cluster.token, "")
-}
+  config_path    = "~/.kube/config"
+  config_context = "arn:aws:eks:us-east-1:729962264965:cluster/roca-eks"
+  }
